@@ -127,7 +127,7 @@
                         </div>
                         <div class="card-bg p-4 rounded-lg">
                             <p class="text-[9px] uppercase text-gray-500 font-black">Uptime</p>
-                            <p id="uptime-text" class="text-sm font-semibold">5d 12h 31m</p>
+                            <p id="uptime-text" class="text-sm font-semibold">0d 0h 0m</p>
                         </div>
                         <div class="card-bg p-4 rounded-lg">
                             <p class="text-[9px] uppercase text-gray-500 font-black">Server ID - Node</p>
@@ -159,6 +159,7 @@
     <script>
         let serverStatus = 'online'; // online, offline, starting
         const consoleEl = document.getElementById('console');
+        let logInterval;
         
         // --- NAVIGATION SYSTEM ---
         function showPage(pageId) {
@@ -167,9 +168,8 @@
             const pageTitle = document.getElementById('page-title');
             const pageIcon = document.getElementById('page-icon');
 
-            // Update Sidebar UI
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
 
             if(pageId === 'console') {
                 consoleView.classList.remove('hidden');
@@ -178,8 +178,6 @@
                 consoleView.classList.add('hidden');
                 otherPages.classList.remove('hidden');
                 pageTitle.innerText = pageId.charAt(0).toUpperCase() + pageId.slice(1);
-                
-                // Map icons
                 const icons = { 'files': 'fa-file', 'activity': 'fa-clock-rotate-left', 'databases': 'fa-database', 'network': 'fa-network-wired', 'users': 'fa-users', 'addons': 'fa-puzzle-piece', 'optimization': 'fa-bolt' };
                 pageIcon.className = `fa-solid ${icons[pageId] || 'fa-cube'} text-5xl text-blue-500 mb-4`;
             }
@@ -190,21 +188,27 @@
             const dot = document.getElementById('server-status-dot');
             
             if(action === 'start') {
-                if(serverStatus === 'online') return addLog("Server is already running.", "WARN");
+                if(serverStatus === 'online' || serverStatus === 'starting') return;
                 serverStatus = 'starting';
                 dot.className = "status-dot status-starting";
-                addLog("Initialising process...", "INFO");
+                addLog("Preparing container environment...", "INFO");
+                addLog("Starting Minecraft Server on port 25095", "INFO");
+                
                 setTimeout(() => {
                     serverStatus = 'online';
                     dot.className = "status-dot status-online";
                     addLog("Server marked as RUNNING", "SUCCESS");
-                }, 3000);
+                    startLiveLogs();
+                }, 2000);
             } 
             else if(action === 'stop') {
+                if(serverStatus === 'offline') return;
                 serverStatus = 'offline';
                 dot.className = "status-dot status-offline";
-                addLog("Stopping server...", "INFO");
+                addLog("Stopping server gracefully...", "INFO");
+                addLog("Saving chunks and closing databases", "INFO");
                 addLog("Server stopped.", "DANGER");
+                clearInterval(logInterval);
             } 
             else if(action === 'restart') {
                 controlServer('stop');
@@ -215,7 +219,7 @@
         // --- CONSOLE LOGIC ---
         function addLog(msg, type = "INFO") {
             const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            const colors = { "INFO": "text-blue-500", "SUCCESS": "text-emerald-500", "WARN": "text-yellow-500", "DANGER": "text-red-500" };
+            const colors = { "INFO": "text-blue-500", "SUCCESS": "text-emerald-500", "WARN": "text-yellow-500", "DANGER": "text-red-500", "USER": "text-white" };
             const logLine = document.createElement('div');
             logLine.className = "mb-1 animate-in fade-in duration-300";
             logLine.innerHTML = `<span class="text-gray-600 mr-2">[${time}]</span> <span class="${colors[type]} font-bold">${type}</span>: ${msg}`;
@@ -223,7 +227,26 @@
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        // Console Input
+        function startLiveLogs() {
+            clearInterval(logInterval);
+            const randomLogs = [
+                "Player logged in: EternalAdmin",
+                "Saving world level...",
+                "Running garbage collector (freed 45MB)",
+                "Updating plugin: EpicKnights v3.2",
+                "New land claim created at [241, 64, -102]",
+                "Auto-backup completed successfully",
+                "TPS: 20.0 (100%)",
+                "Loading entity data..."
+            ];
+            logInterval = setInterval(() => {
+                if(serverStatus === 'online') {
+                    const msg = randomLogs[Math.floor(Math.random() * randomLogs.length)];
+                    addLog(msg, "INFO");
+                }
+            }, 3000);
+        }
+
         document.getElementById('console-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value) {
                 addLog(this.value, "USER");
@@ -251,6 +274,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
                     plugins: { legend: { display: false } },
                     scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } }
                 }
@@ -263,22 +287,26 @@
 
         setInterval(() => {
             if(serverStatus === 'online') {
-                const cpu = Math.floor(Math.random() * 15 + 5);
-                const mem = Math.floor(Math.random() * 50 + 400);
+                const cpu = Math.floor(Math.random() * 25 + 10);
+                const mem = Math.floor(Math.random() * 200 + 800);
+                const net = (Math.random() * 5).toFixed(2);
                 
                 updateChart(cpuChart, cpu);
                 updateChart(memChart, (mem/4000)*100);
-                updateChart(netChart, Math.random() * 100);
+                updateChart(netChart, Math.random() * 80);
 
                 document.getElementById('cpu-text').innerText = `${cpu}% / 200%`;
                 document.getElementById('mem-text').innerText = `${mem} MiB / 3.91 GiB`;
-                document.getElementById('net-text').innerText = `↑ 230.5 MiB`;
+                document.getElementById('net-text').innerText = `↑ ${net} MiB/s`;
             } else {
-                [cpuChart, memChart, netChart].forEach(c => updateChart(c, 0));
+                updateChart(cpuChart, 0);
+                updateChart(memChart, 0);
+                updateChart(netChart, 0);
                 document.getElementById('cpu-text').innerText = `0%`;
                 document.getElementById('mem-text').innerText = `0 MiB`;
+                document.getElementById('net-text').innerText = `0 MiB`;
             }
-        }, 1500);
+        }, 1000);
 
         function updateChart(chart, value) {
             chart.data.datasets[0].data.shift();
@@ -289,9 +317,12 @@
         // Mobile Menu
         document.getElementById('mobile-menu-btn').onclick = () => sidebar.classList.toggle('-translate-x-full');
         
-        // Initial Logs
-        addLog("Container checked and ready.", "INFO");
-        addLog("Connecting to JKT-NODE-05...", "INFO");
+        // Auto-start on load
+        window.onload = () => {
+            addLog("Container checked and ready.", "INFO");
+            addLog("Connecting to JKT-NODE-05...", "INFO");
+            startLiveLogs();
+        };
     </script>
 </body>
 </html>
