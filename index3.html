@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETERNALSMP - Game Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0d0d0d; color: #eeeeee; }
+        .console-area { font-family: 'JetBrains Mono', monospace; background-color: #0a0a0a; scrollbar-width: thin; scrollbar-color: #333 #0a0a0a; }
+        .card-bg { background-color: #151515; border: 1px solid #222; }
+        .sidebar-item { border-left: 3px solid transparent; cursor: pointer; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: #1f1f1f; border-left: 3px solid #3b82f6; color: white; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-online { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+        .status-offline { background-color: #ef4444; }
+        .status-starting { background-color: #f59e0b; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <nav class="h-14 border-b border-white/5 bg-[#0d0d0d] flex items-center justify-between px-4 sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <button id="mobile-menu-btn" class="lg:hidden text-white"><i class="fa-solid fa-bars text-xl"></i></button>
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cube text-blue-500 text-xl"></i>
+                <span class="font-bold tracking-tighter text-lg uppercase">ETERNALSMP</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-5 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass cursor-pointer hover:text-white"></i>
+            <i class="fa-solid fa-circle-user cursor-pointer hover:text-white"></i>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#0d0d0d] border-r border-white/5 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out h-[calc(100vh-3.5rem)] overflow-y-auto">
+            <div class="p-4 space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 mb-3 tracking-widest uppercase">Your Server</p>
+                    <div class="space-y-1 nav-group">
+                        <div onclick="showPage('console')" class="sidebar-item active flex items-center gap-3 p-2 text-sm rounded transition-all"><i class="fa-solid fa-terminal w-5 text-blue-400"></i> Console</div>
+                        <div onclick="showPage('files')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-file w-5"></i> Files</div>
+                        <div onclick="showPage('activity')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-clock-rotate-left w-5"></i> Activity</div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 mb-3 tracking-widest uppercase">Server Settings</p>
+                    <div class="space-y-1 nav-group">
+                        <div onclick="showPage('databases')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-database w-5"></i> Databases</div>
+                        <div onclick="showPage('network')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-network-wired w-5"></i> Network</div>
+                        <div onclick="showPage('users')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-users w-5"></i> Users</div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 mb-3 tracking-widest uppercase">Minecraft</p>
+                    <div class="space-y-1 nav-group">
+                        <div onclick="showPage('addons')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-puzzle-piece w-5"></i> Addons</div>
+                        <div onclick="showPage('optimization')" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all"><i class="fa-solid fa-bolt w-5"></i> Optimization</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-6 w-full min-h-screen">
+            <div id="page-content">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="server-status-dot" class="status-dot status-online"></span>
+                            <h1 class="text-xl font-semibold tracking-wide">MC-GNL-4G #2737</h1>
+                        </div>
+                        <p class="text-sm text-gray-500">game-gnl-jkt5.raznar.net:25095</p>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="controlServer('start')" class="flex-1 md:flex-none px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-sm font-medium transition-colors">Start</button>
+                        <button onclick="controlServer('restart')" class="flex-1 md:flex-none px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm font-medium transition-colors">Restart</button>
+                        <button onclick="controlServer('stop')" class="flex-1 md:flex-none px-6 py-2 bg-red-600 hover:bg-red-700 rounded text-sm font-medium transition-colors">Stop</button>
+                    </div>
+                </div>
+
+                <div id="console-view" class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                    <div class="xl:col-span-3 space-y-6">
+                        <div class="card-bg rounded-lg overflow-hidden flex flex-col h-[480px] shadow-2xl">
+                            <div id="console" class="console-area flex-1 p-5 text-[13px] overflow-y-auto leading-relaxed text-gray-300">
+                                <div class="text-gray-600 text-[10px] mb-4 uppercase tracking-widest border-b border-white/5 pb-2">Terminal Instance : EternalSMP-Main</div>
+                            </div>
+                            <div class="p-4 bg-[#0a0a0a] border-t border-white/5 flex items-center">
+                                <span class="text-blue-500 font-bold mr-3">></span>
+                                <input id="console-input" type="text" placeholder="Type a command..." class="bg-transparent border-none outline-none w-full text-sm text-gray-300">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="card-bg p-4 rounded-lg">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase">CPU Load</span>
+                                    <span class="text-xs text-blue-400 font-mono" id="cpu-text">0%</span>
+                                </div>
+                                <div class="h-20"><canvas id="cpuChart"></canvas></div>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase">Memory</span>
+                                    <span class="text-xs text-cyan-400 font-mono" id="mem-text">0 MB</span>
+                                </div>
+                                <div class="h-20"><canvas id="memChart"></canvas></div>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase">Network</span>
+                                    <span class="text-xs text-red-400 font-mono" id="net-text">0 MiB</span>
+                                </div>
+                                <div class="h-20"><canvas id="netChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="card-bg p-4 rounded-lg">
+                            <p class="text-[9px] uppercase text-gray-500 font-black">Address</p>
+                            <p class="text-sm font-semibold truncate">game-gnl-jkt5.raznar.net:25095</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                            <p class="text-[9px] uppercase text-gray-500 font-black">Uptime</p>
+                            <p id="uptime-text" class="text-sm font-semibold">5d 12h 31m</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                            <p class="text-[9px] uppercase text-gray-500 font-black">Server ID - Node</p>
+                            <p class="text-xs font-medium text-gray-400">453db8e9 - GAME-GNL-JKT5</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                            <p class="text-[9px] uppercase text-gray-500 font-black">Storage Usage</p>
+                            <p class="text-sm font-semibold">3.75 GiB <span class="text-gray-500 text-[10px]">/ 25GB</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="other-pages" class="hidden">
+                    <div class="card-bg p-10 rounded-lg text-center">
+                        <i id="page-icon" class="fa-solid fa-file text-5xl text-blue-500 mb-4"></i>
+                        <h2 id="page-title" class="text-2xl font-bold">Files</h2>
+                        <p class="text-gray-500 mt-2">This module is currently being loaded...</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="mt-12 py-6 border-t border-white/5 text-gray-600 text-xs flex justify-between">
+                <p>&copy; 2020-2026 Raznar. All Rights Reserved.</p>
+                <p>v1.4.2-stable</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let serverStatus = 'online'; // online, offline, starting
+        const consoleEl = document.getElementById('console');
+        
+        // --- NAVIGATION SYSTEM ---
+        function showPage(pageId) {
+            const consoleView = document.getElementById('console-view');
+            const otherPages = document.getElementById('other-pages');
+            const pageTitle = document.getElementById('page-title');
+            const pageIcon = document.getElementById('page-icon');
+
+            // Update Sidebar UI
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if(pageId === 'console') {
+                consoleView.classList.remove('hidden');
+                otherPages.classList.add('hidden');
+            } else {
+                consoleView.classList.add('hidden');
+                otherPages.classList.remove('hidden');
+                pageTitle.innerText = pageId.charAt(0).toUpperCase() + pageId.slice(1);
+                
+                // Map icons
+                const icons = { 'files': 'fa-file', 'activity': 'fa-clock-rotate-left', 'databases': 'fa-database', 'network': 'fa-network-wired', 'users': 'fa-users', 'addons': 'fa-puzzle-piece', 'optimization': 'fa-bolt' };
+                pageIcon.className = `fa-solid ${icons[pageId] || 'fa-cube'} text-5xl text-blue-500 mb-4`;
+            }
+        }
+
+        // --- SERVER CONTROL LOGIC ---
+        function controlServer(action) {
+            const dot = document.getElementById('server-status-dot');
+            
+            if(action === 'start') {
+                if(serverStatus === 'online') return addLog("Server is already running.", "WARN");
+                serverStatus = 'starting';
+                dot.className = "status-dot status-starting";
+                addLog("Initialising process...", "INFO");
+                setTimeout(() => {
+                    serverStatus = 'online';
+                    dot.className = "status-dot status-online";
+                    addLog("Server marked as RUNNING", "SUCCESS");
+                }, 3000);
+            } 
+            else if(action === 'stop') {
+                serverStatus = 'offline';
+                dot.className = "status-dot status-offline";
+                addLog("Stopping server...", "INFO");
+                addLog("Server stopped.", "DANGER");
+            } 
+            else if(action === 'restart') {
+                controlServer('stop');
+                setTimeout(() => controlServer('start'), 1500);
+            }
+        }
+
+        // --- CONSOLE LOGIC ---
+        function addLog(msg, type = "INFO") {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const colors = { "INFO": "text-blue-500", "SUCCESS": "text-emerald-500", "WARN": "text-yellow-500", "DANGER": "text-red-500" };
+            const logLine = document.createElement('div');
+            logLine.className = "mb-1 animate-in fade-in duration-300";
+            logLine.innerHTML = `<span class="text-gray-600 mr-2">[${time}]</span> <span class="${colors[type]} font-bold">${type}</span>: ${msg}`;
+            consoleEl.appendChild(logLine);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // Console Input
+        document.getElementById('console-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value) {
+                addLog(this.value, "USER");
+                this.value = '';
+            }
+        });
+
+        // --- CHARTS LOGIC ---
+        function createChart(id, color) {
+            const ctx = document.getElementById(id).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        data: Array(20).fill(0),
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: color.replace('1)', '0.1)'),
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } }
+                }
+            });
+        }
+
+        const cpuChart = createChart('cpuChart', 'rgba(59, 130, 246, 1)');
+        const memChart = createChart('memChart', 'rgba(34, 211, 238, 1)');
+        const netChart = createChart('netChart', 'rgba(239, 68, 68, 1)');
+
+        setInterval(() => {
+            if(serverStatus === 'online') {
+                const cpu = Math.floor(Math.random() * 15 + 5);
+                const mem = Math.floor(Math.random() * 50 + 400);
+                
+                updateChart(cpuChart, cpu);
+                updateChart(memChart, (mem/4000)*100);
+                updateChart(netChart, Math.random() * 100);
+
+                document.getElementById('cpu-text').innerText = `${cpu}% / 200%`;
+                document.getElementById('mem-text').innerText = `${mem} MiB / 3.91 GiB`;
+                document.getElementById('net-text').innerText = `↑ 230.5 MiB`;
+            } else {
+                [cpuChart, memChart, netChart].forEach(c => updateChart(c, 0));
+                document.getElementById('cpu-text').innerText = `0%`;
+                document.getElementById('mem-text').innerText = `0 MiB`;
+            }
+        }, 1500);
+
+        function updateChart(chart, value) {
+            chart.data.datasets[0].data.shift();
+            chart.data.datasets[0].data.push(value);
+            chart.update('none');
+        }
+
+        // Mobile Menu
+        document.getElementById('mobile-menu-btn').onclick = () => sidebar.classList.toggle('-translate-x-full');
+        
+        // Initial Logs
+        addLog("Container checked and ready.", "INFO");
+        addLog("Connecting to JKT-NODE-05...", "INFO");
+    </script>
+</body>
+</html>
