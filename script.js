@@ -96,9 +96,11 @@ function addLog(msg, type = "INFO") {
 }
 
 // --- DISCORD WEBHOOK ---
+// --- DISCORD WEBHOOK (REVISED: No Online Count) ---
 async function sendToDiscord(playerName, action, count, message = null) {
-    let description = `**${playerName}**\n${action}\n**[${count} online]**`;
-    if(message) description = `**<${playerName}>** ${message}\n\n*In-game Chat*\n**[${count} online]**`;
+    // Menghilangkan baris [count online] agar lebih bersih
+    let description = `**${playerName}**\n${action}`;
+    if(message) description = `**<${playerName}>** ${message}\n\n*In-game Chat*`;
 
     const payload = {
         embeds: [{
@@ -118,6 +120,81 @@ async function sendToDiscord(playerName, action, count, message = null) {
     } catch (e) { console.error("Discord Hook Failed"); }
 }
 
+// --- SIMULASI AKTIVITAS (REVISED: Random Faster Intervals) ---
+function startSimulation() {
+    if (logInterval) clearTimeout(logInterval); 
+    seedPlayers();
+
+    const runRandomSimulation = () => {
+        if(serverStatus !== 'online') return;
+
+        const rand = Math.random();
+        const onlineArray = Array.from(onlinePlayers);
+        const randomPlayer = PLAYER_POOL[Math.floor(Math.random() * PLAYER_POOL.length)];
+
+        // Logika Maintain Populasi
+        if (onlinePlayers.size < 30 || (rand < 0.1 && onlinePlayers.size < 80)) { 
+            if (!onlinePlayers.has(randomPlayer)) {
+                onlinePlayers.add(randomPlayer);
+                addLog(`${randomPlayer} joined the game`, "INFO");
+                sendToDiscord(randomPlayer, "Joined the game", onlinePlayers.size);
+            }
+        } 
+        else if (rand < 0.15 && onlinePlayers.size > 30) { 
+            const pToLeave = onlineArray[Math.floor(Math.random() * onlineArray.length)];
+            onlinePlayers.delete(pToLeave);
+            addLog(`${pToLeave} left the game`, "INFO");
+            sendToDiscord(pToLeave, "Left the game", onlinePlayers.size);
+        } 
+        else if (rand < 0.50) { // Chatting (Probabilitas sedikit ditingkatkan)
+            const pChat = onlineArray[Math.floor(Math.random() * onlineArray.length)];
+            const msg = CHAT_POOL[Math.floor(Math.random() * CHAT_POOL.length)];
+            addLog(`<${pChat}> ${msg}`, "INFO");
+            if(Math.random() < 0.3) sendToDiscord(pChat, "", onlinePlayers.size, msg);
+        }
+        else { // System Stuff
+            const sysLogs = ["Saving chunks for level 'world'", "TPS: 20.0 - MSPT: 12.5", "Automatic backup completed"];
+            addLog(sysLogs[Math.floor(Math.random() * sysLogs.length)], "INFO");
+        }
+
+        updateVisualStats();
+
+        // Penentuan waktu muncul berikutnya secara random (antara 1.5 detik hingga 6 detik)
+        // Agar tidak membosankan dan terlihat lebih "real-time"
+        const nextTick = Math.floor(Math.random() * (6000 - 1500 + 1)) + 1500;
+        logInterval = setTimeout(runRandomSimulation, nextTick);
+    };
+
+    // Jalankan pertama kali
+    logInterval = setTimeout(runRandomSimulation, 2000);
+}
+
+// --- CONTROL SERVER (REVISED: Clear Timeout) ---
+function controlServer(action) {
+    const dot = document.getElementById('server-status-dot');
+    if(action === 'start') {
+        serverStatus = 'online';
+        localStorage.setItem('eternal_status', 'online');
+        if(dot) dot.className = "status-dot status-online";
+        addLog("Starting Bedrock Server Engine...", "INFO");
+        addLog("Opening port 25095...", "INFO");
+        resetUptime(true);
+        startSimulation();
+    } else if(action === 'stop') {
+        serverStatus = 'offline';
+        localStorage.setItem('eternal_status', 'offline');
+        if(dot) dot.className = "status-dot status-offline";
+        addLog("Stopping server...", "WARN");
+        onlinePlayers.clear();
+        clearTimeout(logInterval); // Menggunakan clearTimeout karena sistem simulasi berubah
+        resetUptime(false);
+        const pDisplay = document.getElementById('player-online-text');
+        if(pDisplay) pDisplay.innerText = "0 / 100";
+    } else if(action === 'restart') {
+        controlServer('stop');
+        setTimeout(() => controlServer('start'), 2000);
+    }
+}
 // --- SIMULASI AKTIVITAS (HIGH DENSITY) ---
 function startSimulation() {
     clearInterval(logInterval);
