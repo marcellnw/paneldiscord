@@ -3,9 +3,10 @@
    statistik grafik, dan Discord Webhook.
 */
 
-let serverStatus = 'online'; 
+// --- STATE & KONFIGURASI ---
+let serverStatus = 'offline'; // Status awal offline agar tombol Start bisa memicu startup
 let logInterval;
-let discordInterval; // Tetap dideklarasikan untuk kompatibilitas, meski sekarang pemicu Discord berbasis event
+let discordInterval; 
 let uptimeInterval;
 let startTime = Date.now();
 let onlinePlayers = new Set(); 
@@ -107,10 +108,9 @@ async function sendToDiscord(playerName, action, count) {
     } catch (e) { console.error("Webhook Error"); }
 }
 
-// --- SIMULASI AKTIVITAS & STATS (AKURAT) ---
+// --- SIMULASI AKTIVITAS & STATS ---
 function startSimulation() {
     clearInterval(logInterval);
-    clearInterval(discordInterval);
 
     logInterval = setInterval(() => {
         if(serverStatus !== 'online') return;
@@ -127,14 +127,14 @@ function startSimulation() {
                 sendToDiscord(randomPlayer, "Player Join", onlinePlayers.size);
             }
         } 
-        // LOGIKA LEAVE (Hanya player yang online yang bisa leave)
+        // LOGIKA LEAVE
         else if (rand < 0.15 && onlineArray.length > 0) { 
             const playerToLeave = onlineArray[Math.floor(Math.random() * onlineArray.length)];
             onlinePlayers.delete(playerToLeave);
             addLog(`${playerToLeave} left the game`, "INFO");
             sendToDiscord(playerToLeave, "Player Leave", onlinePlayers.size);
         } 
-        // LOGIKA AKTIVITAS (Hanya player yang online yang melakukan aktivitas)
+        // LOGIKA AKTIVITAS
         else if (rand < 0.4 && onlineArray.length > 0) { 
             const activePlayer = onlineArray[Math.floor(Math.random() * onlineArray.length)];
             const acts = ["mining diamonds", "exploring cave", "fighting mobs", "level up mining"];
@@ -146,13 +146,11 @@ function startSimulation() {
             addLog(system[Math.floor(Math.random() * system.length)], "INFO");
         }
 
-        // Update Statistik Visual & Grafik
         updateVisualStats();
 
     }, 3000);
 }
 
-// Fungsi bantu untuk memperbarui Grafik dan Teks di UI
 function updateVisualStats() {
     if(serverStatus !== 'online') return;
 
@@ -165,7 +163,7 @@ function updateVisualStats() {
     
     const cpuTxt = document.getElementById('cpu-text');
     const memTxt = document.getElementById('mem-text');
-    const playerTxt = document.getElementById('player-online-text'); // Gunakan ID ini untuk jumlah player
+    const playerTxt = document.getElementById('player-online-text');
 
     if(cpuTxt) cpuTxt.innerText = `${cpu}%`;
     if(memTxt) memTxt.innerText = `${mem} MiB`;
@@ -206,6 +204,7 @@ const memChart = createChart('memChart', 'rgba(34, 211, 238, 1)');
 const netChart = createChart('netChart', 'rgba(239, 68, 68, 1)');
 
 function updateChart(chart, value) {
+    if(!chart) return;
     chart.data.datasets[0].data.shift();
     chart.data.datasets[0].data.push(value);
     chart.update('none');
@@ -214,11 +213,14 @@ function updateChart(chart, value) {
 // --- CONTROL SERVER ---
 function controlServer(action) {
     const dot = document.getElementById('server-status-dot');
+    
     if(action === 'start') {
-        if(serverStatus === 'online') return;
+        if(serverStatus === 'online' || serverStatus === 'starting') return;
+        
         serverStatus = 'starting';
         dot.className = "status-dot status-starting";
         addLog("Initializing environment...", "INFO");
+        
         setTimeout(() => {
             addLog("Loading world 'EternalSeason15'...", "INFO");
             addLog("Server started on port 25095", "INFO");
@@ -227,20 +229,28 @@ function controlServer(action) {
             resetUptime(true);
             startSimulation();
         }, 2000);
+
     } else if(action === 'stop') {
         serverStatus = 'offline';
         dot.className = "status-dot status-offline";
         addLog("Shutdown signal received.", "WARN");
         addLog("Server stopped.", "INFO");
+        
         onlinePlayers.clear();
         clearInterval(logInterval);
         resetUptime(false);
-        // Reset player display
+        
         const pTxt = document.getElementById('player-online-text');
         if(pTxt) pTxt.innerText = "0 / 100";
+        
+        // Reset Chart Visuals
+        if(cpuChart) { cpuChart.data.datasets[0].data.fill(0); cpuChart.update(); }
+        document.getElementById('cpu-text').innerText = "0%";
+        document.getElementById('mem-text').innerText = "0 MiB";
+
     } else if(action === 'restart') {
         controlServer('stop');
-        setTimeout(() => controlServer('start'), 2000);
+        setTimeout(() => controlServer('start'), 3000);
     }
 }
 
@@ -263,28 +273,39 @@ function resetUptime(isStarting) {
 }
 
 // --- COMMAND SYSTEM ---
-document.getElementById('console-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && this.value) {
-        const cmd = this.value.trim();
-        addLog(`User EternalAdmin issued server command: ${cmd}`, "INFO");
-        if(cmd === "list") {
-            addLog(`There are ${onlinePlayers.size} players online: ${Array.from(onlinePlayers).join(', ')}`, "INFO");
-        } else if (cmd.startsWith("op ")) {
-            addLog(`Opped ${cmd.split(' ')[1]}`, "INFO");
-        } else if (cmd === "seed") {
-            addLog(`Seed: [5829301129384]`, "INFO");
+const consoleInput = document.getElementById('console-input');
+if (consoleInput) {
+    consoleInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value) {
+            const cmd = this.value.trim();
+            addLog(`User EternalAdmin issued server command: ${cmd}`, "INFO");
+            
+            if(cmd === "list") {
+                addLog(`There are ${onlinePlayers.size} players online: ${Array.from(onlinePlayers).join(', ') || 'None'}`, "INFO");
+            } else if (cmd.startsWith("op ")) {
+                addLog(`Opped ${cmd.split(' ')[1]}`, "INFO");
+            } else if (cmd === "seed") {
+                addLog(`Seed: [5829301129384]`, "INFO");
+            } else if (cmd === "stop") {
+                controlServer('stop');
+            }
+            this.value = '';
         }
-        this.value = '';
-    }
-});
+    });
+}
 
-// Event UI Lainnya
-document.getElementById('mobile-menu-btn').onclick = () => document.getElementById('sidebar').classList.toggle('-translate-x-full');
+// Event UI UI Handler
+const menuBtn = document.getElementById('mobile-menu-btn');
+if(menuBtn) {
+    menuBtn.onclick = () => document.getElementById('sidebar').classList.toggle('-translate-x-full');
+}
+
 function triggerSearch() { alert("Search feature initialized..."); }
 function toggleUserMenu() { alert("Admin Profile: Iko Siswono"); }
 
-// Inisialisasi awal
+// --- INISIALISASI AWAL ---
 window.onload = () => {
     showPage('console');
+    // Mulai server secara otomatis saat halaman dimuat
     controlServer('start');
 };
