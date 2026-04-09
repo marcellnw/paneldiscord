@@ -29,7 +29,7 @@
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#0d0d0d] border-r border-white/5 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out h-[calc(100vh-3.5rem)] overflow-y-auto">
             <div class="p-4 space-y-6">
                 <div>
-                    <p class="nav-header">Main Category</p>
+                    <p class="nav-header">Utama</p>
                     <div class="space-y-1">
                         <div onclick="showPage('console')" class="sidebar-item active" data-page="console"><i class="fa-solid fa-terminal w-5 text-blue-400"></i> Console</div>
                         <div onclick="showPage('files')" class="sidebar-item" data-page="files"><i class="fa-solid fa-folder-open w-5"></i> Files</div>
@@ -42,6 +42,7 @@
                     <p class="nav-header">Server Management</p>
                     <div class="space-y-1">
                         <div onclick="showPage('software')" class="sidebar-item" data-page="software"><i class="fa-solid fa-layer-group w-5"></i> Change Software</div>
+                        <div onclick="showPage('settings-server')" class="sidebar-item" data-page="settings-server"><i class="fa-solid fa-sliders w-5"></i> Server Settings</div>
                         <div onclick="showPage('databases')" class="sidebar-item" data-page="databases"><i class="fa-solid fa-database w-5"></i> Databases</div>
                         <div onclick="showPage('schedules')" class="sidebar-item" data-page="schedules"><i class="fa-solid fa-calendar-days w-5"></i> Schedules</div>
                         <div onclick="showPage('users')" class="sidebar-item" data-page="users"><i class="fa-solid fa-users w-5"></i> Users</div>
@@ -64,19 +65,21 @@
                 </div>
 
                 <div>
-                    <p class="nav-header">Development & Environment</p>
+                    <p class="nav-header">Development</p>
                     <div class="space-y-1">
                         <div onclick="showPage('startup')" class="sidebar-item" data-page="startup"><i class="fa-solid fa-rocket w-5"></i> Startup</div>
+                        <div onclick="showPage('env')" class="sidebar-item" data-page="env"><i class="fa-solid fa-flask w-5"></i> Environment</div>
+                        <div onclick="showPage('subdomain')" class="sidebar-item" data-page="subdomain"><i class="fa-solid fa-link w-5"></i> Subdomain</div>
                         <div onclick="showPage('git')" class="sidebar-item" data-page="git"><i class="fa-brands fa-git-alt w-5"></i> Git Deployment</div>
-                        <div onclick="showPage('settings')" class="sidebar-item" data-page="settings"><i class="fa-solid fa-wrench w-5"></i> Settings</div>
+                        <div onclick="showPage('settings-dev')" class="sidebar-item" data-page="settings-dev"><i class="fa-solid fa-wrench w-5"></i> Settings</div>
                     </div>
                 </div>
             </div>
         </aside>
 
         <main class="flex-1 p-4 lg:p-6 w-full min-h-screen">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
+            <div id="header-container" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div id="server-info">
                     <div class="flex items-center gap-2">
                         <span id="server-status-dot" class="status-dot status-online"></span>
                         <h1 class="text-xl font-semibold tracking-wide">MC-GNL-4G #2737</h1>
