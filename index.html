@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETERNALSMP - Game Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d0d;
+            color: #eeeeee;
+        }
+
+        .console-area {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #0a0a0a;
+            scrollbar-width: thin;
+            scrollbar-color: #333 #0a0a0a;
+        }
+
+        .card-bg {
+            background-color: #151515;
+            border: 1px solid #222;
+        }
+
+        .sidebar-item:hover {
+            background-color: #1f1f1f;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .active-link {
+            background-color: #1f1f1f;
+            border-left: 3px solid #3b82f6;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0d0d0d; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <nav class="h-14 border-b border-white/5 bg-[#0d0d0d] flex items-center justify-between px-4 sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <button id="mobile-menu-btn" class="lg:hidden text-white">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cube text-blue-500 text-xl"></i>
+                <span class="font-bold tracking-tighter text-lg">ETERNALSMP</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-5 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass cursor-pointer hover:text-white"></i>
+            <i class="fa-solid fa-layer-group cursor-pointer hover:text-white"></i>
+            <i class="fa-solid fa-circle-user cursor-pointer hover:text-white"></i>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#0d0d0d] border-r border-white/5 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out h-[calc(100vh-3.5rem)] overflow-y-auto">
+            <div class="p-4">
+                <p class="text-[10px] font-bold text-gray-500 mb-3 tracking-widest uppercase">Your Server</p>
+                <div class="space-y-1">
+                    <a href="#" class="sidebar-item active-link flex items-center gap-3 p-2 text-sm rounded transition-all">
+                        <i class="fa-solid fa-terminal w-5 text-blue-400"></i> Console
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-file w-5"></i> Files
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-network-wired w-5"></i> Network
+                    </a>
+                </div>
+
+                <p class="text-[10px] font-bold text-gray-500 mt-8 mb-3 tracking-widest uppercase">Server Settings</p>
+                <div class="space-y-1">
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-database w-5"></i> Databases
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-calendar-days w-5"></i> Schedules
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-users w-5"></i> Users
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-clock-rotate-left w-5"></i> Backups
+                    </a>
+                </div>
+
+                <p class="text-[10px] font-bold text-gray-500 mt-8 mb-3 tracking-widest uppercase">Minecraft</p>
+                <div class="space-y-1">
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-puzzle-piece w-5"></i> Addons
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-code-branch w-5"></i> Versions
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center gap-3 p-2 text-sm text-gray-400 rounded transition-all">
+                        <i class="fa-solid fa-bolt w-5"></i> Optimization
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-6 w-full min-h-screen overflow-hidden">
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h1 class="text-xl font-semibold">MC-GNL-4G #2737</h1>
+                    <p class="text-sm text-gray-500">game-gnl-jkt5.eternalsmp.net:25095</p>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button class="flex-1 md:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-play mr-2"></i> Start
+                    </button>
+                    <button class="flex-1 md:flex-none px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-rotate mr-2"></i> Restart
+                    </button>
+                    <button class="flex-1 md:flex-none px-6 py-2 bg-red-600 hover:bg-red-700 rounded text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-stop mr-2"></i> Stop
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                
+                <div class="xl:col-span-3 space-y-4">
+                    <div class="card-bg rounded-lg overflow-hidden flex flex-col h-[500px]">
+                        <div id="console" class="console-area flex-1 p-4 text-[13px] overflow-y-auto leading-relaxed">
+                            <div class="text-gray-500 text-xs mb-2 uppercase">Server Console — EternalSMP Instance</div>
+                            </div>
+                        <div class="p-3 bg-[#111] border-t border-white/5 flex items-center">
+                            <span class="text-gray-500 mr-3">»</span>
+                            <input type="text" placeholder="Type a command..." class="bg-transparent border-none outline-none w-full text-sm text-gray-300">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="card-bg p-4 rounded-lg">
+                            <div class="flex justify-between mb-4">
+                                <span class="text-xs font-bold text-gray-500 uppercase">CPU Load</span>
+                                <span class="text-xs text-blue-400" id="cpu-text">7% / 200%</span>
+                            </div>
+                            <div class="h-24">
+                                <canvas id="cpuChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                            <div class="flex justify-between mb-4">
+                                <span class="text-xs font-bold text-gray-500 uppercase">Memory</span>
+                                <span class="text-xs text-cyan-400">483 MB / 4 GB</span>
+                            </div>
+                            <div class="h-24">
+                                <canvas id="memChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                            <div class="flex justify-between mb-4">
+                                <span class="text-xs font-bold text-gray-500 uppercase">Network</span>
+                                <span class="text-xs text-red-400">↑ 230 MiB</span>
+                            </div>
+                            <div class="h-24">
+                                <canvas id="netChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="card-bg p-4 rounded-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-calendar-check text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-gray-500 font-bold">Expiration Date</p>
+                            <p class="text-sm font-medium text-white">18 Apr 2026</p>
+                        </div>
+                    </div>
+                    <div class="card-bg p-4 rounded-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-wifi text-lg"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-[10px] uppercase text-gray-500 font-bold">Address</p>
+                            <p class="text-sm font-medium text-white truncate">game-gnl-jkt5.eternalsmp.net</p>
+                        </div>
+                    </div>
+                    <div class="card-bg p-4 rounded-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-clock text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-gray-500 font-bold">Uptime</p>
+                            <p class="text-sm font-medium text-white">5d 11h 51m</p>
+                        </div>
+                    </div>
+                    <div class="card-bg p-4 rounded-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-microchip text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-gray-500 font-bold">Node ID</p>
+                            <p class="text-sm font-medium text-gray-400 text-xs">453db8e9 - GAME-JKT5</p>
+                        </div>
+                    </div>
+                    <div class="card-bg p-4 rounded-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-hard-drive text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-gray-500 font-bold">Disk Usage</p>
+                            <p class="text-sm font-medium text-white">3.75 GiB <span class="text-gray-500 text-xs">/ 25 GiB</span></p>
+                        </div>
+                    </div>
+                    <div class="card-bg p-4 rounded-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-cloud-arrow-down text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-gray-500 font-bold">Inbound</p>
+                            <p class="text-sm font-medium text-white">13.42 MiB</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- MOBILE MENU LOGIC ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // --- CONSOLE SIMULATION ---
+        const consoleEl = document.getElementById('console');
+        const logs = [
+            "Running AutoCompaction...",
+            "Loading world 'Feeloria'...",
+            "Checking for plugin updates...",
+            "ETERNALSMP Server initialized on port 25095",
+            "Authentication service connected",
+            "Player Marcellnw joined the game",
+            "Saving world state to disk...",
+            "Network latency: 15ms"
+        ];
+
+        function addLog() {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const log = logs[Math.floor(Math.random() * logs.length)];
+            const logLine = document.createElement('div');
+            logLine.innerHTML = `<span class="text-gray-600">[${time}]</span> <span class="text-blue-400">INFO</span>: ${log}`;
+            consoleEl.appendChild(logLine);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        setInterval(addLog, 3000);
+        // Initial logs
+        for(let i=0; i<15; i++) addLog();
+
+        // --- CHART JS LOGIC ---
+        function createChart(id, color, label) {
+            const ctx = document.getElementById(id).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        data: Array(20).fill(0).map(() => Math.random() * 100),
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: color.replace('1)', '0.1)'),
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, min: 0, max: 100 }
+                    }
+                }
+            });
+        }
+
+        const cpuChart = createChart('cpuChart', 'rgba(59, 130, 246, 1)', 'CPU');
+        const memChart = createChart('memChart', 'rgba(34, 211, 238, 1)', 'MEM');
+        const netChart = createChart('netChart', 'rgba(239, 68, 68, 1)', 'NET');
+
+        // Update charts randomly
+        setInterval(() => {
+            [cpuChart, memChart, netChart].forEach(chart => {
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[0].data.push(Math.random() * 100);
+                chart.update('none');
+            });
+            document.getElementById('cpu-text').innerText = `${Math.floor(Math.random() * 15 + 5)}% / 200%`;
+        }, 2000);
+    </script>
+</body>
+</html>
