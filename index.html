@@ -81,24 +81,24 @@
             <div id="header-container" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div id="server-info">
                     <div class="flex items-center gap-2">
-                        <span id="server-status-dot" class="status-dot status-online"></span>
+                        <span id="server-status-dot" class="status-dot status-offline"></span>
                         <h1 class="text-xl font-semibold tracking-wide">MC-GNL-4G #2737</h1>
                     </div>
                     <p class="text-sm text-gray-500">game-gnl-jkt5.raznar.net:25095</p>
                 </div>
                 
                 <div id="console-actions" class="flex gap-2 w-full md:w-auto">
-                    <button onclick="controlServer('start')" class="btn-action bg-emerald-600 hover:bg-emerald-700">Start</button>
-                    <button onclick="controlServer('restart')" class="btn-action bg-gray-700 hover:bg-gray-600">Restart</button>
-                    <button onclick="controlServer('stop')" class="btn-action bg-red-600 hover:bg-red-700">Stop</button>
+                    <button onclick="controlServer('start')" class="btn-action bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-all">Start</button>
+                    <button onclick="controlServer('restart')" class="btn-action bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-all">Restart</button>
+                    <button onclick="controlServer('stop')" class="btn-action bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-all">Stop</button>
                 </div>
             </div>
 
             <div id="main-content-area">
                 <div id="console-view" class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                     <div class="xl:col-span-3 space-y-6">
-                        <div class="card-bg rounded-lg overflow-hidden flex flex-col h-[480px] shadow-2xl">
-                            <div id="console" class="console-area flex-1 p-5 text-[13px] overflow-y-auto leading-relaxed text-gray-300">
+                        <div class="card-bg rounded-lg overflow-hidden flex flex-col h-[480px] shadow-2xl bg-[#0a0a0a]">
+                            <div id="console" class="console-area flex-1 p-5 text-[13px] overflow-y-auto leading-relaxed text-gray-300 font-mono">
                                 <div class="text-gray-600 text-[10px] mb-4 uppercase tracking-widest border-b border-white/5 pb-2">Terminal Instance : EternalSMP-Main</div>
                             </div>
                             <div class="p-4 bg-[#0a0a0a] border-t border-white/5 flex items-center">
@@ -108,48 +108,52 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="card-bg p-4 rounded-lg">
+                            <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
                                 <div class="flex justify-between mb-2">
-                                    <span class="stat-label">CPU Load</span>
-                                    <span class="text-xs text-blue-400 font-mono" id="cpu-text">12%</span>
+                                    <span class="text-xs text-gray-500 uppercase">CPU Load</span>
+                                    <span class="text-xs text-blue-400 font-mono" id="cpu-text">0%</span>
                                 </div>
                                 <div class="h-20"><canvas id="cpuChart"></canvas></div>
                             </div>
-                            <div class="card-bg p-4 rounded-lg">
+                            <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
                                 <div class="flex justify-between mb-2">
-                                    <span class="stat-label">RAM Usage</span>
-                                    <span class="text-xs text-cyan-400 font-mono" id="mem-text">1024 MiB</span>
+                                    <span class="text-xs text-gray-500 uppercase">RAM Usage</span>
+                                    <span class="text-xs text-cyan-400 font-mono" id="mem-text">0 MiB</span>
                                 </div>
                                 <div class="h-20"><canvas id="memChart"></canvas></div>
                             </div>
-                            <div class="card-bg p-4 rounded-lg">
+                            <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
                                 <div class="flex justify-between mb-2">
-                                    <span class="stat-label">Network Activity</span>
-                                    <span class="text-xs text-red-400 font-mono" id="net-text">0.5 MiB</span>
+                                    <span class="text-xs text-gray-500 uppercase">Network</span>
+                                    <span class="text-xs text-red-400 font-mono" id="net-text">0 MiB</span>
                                 </div>
                                 <div class="h-20"><canvas id="netChart"></canvas></div>
                             </div>
                         </div>
-                        </div>
+                    </div>
 
                     <div class="space-y-3">
-                        <div class="card-bg p-4 rounded-lg">
-                            <p class="stat-label-small">Address</p>
-                            <p class="text-sm font-semibold truncate">game-gnl-jkt5.raznar.net:25095</p>
+                        <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
+                            <p class="text-[10px] text-gray-500 uppercase mb-1">Address</p>
+                            <p class="text-sm font-semibold truncate text-white">game-gnl-jkt5.raznar.net:25095</p>
                         </div>
-                        <div class="card-bg p-4 rounded-lg">
-                            <p class="stat-label-small">Uptime</p>
-                            <p id="uptime-text" class="text-sm font-semibold">0d 0h 0m 0s</p>
+                        <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
+                            <p class="text-[10px] text-gray-500 uppercase mb-1">Uptime</p>
+                            <p id="uptime-text" class="text-sm font-semibold text-white">0d 0h 0m 0s</p>
                         </div>
-                        <div class="card-bg p-4 rounded-lg">
-                            <p class="stat-label-small">Storage Usage</p>
-                            <p class="text-sm font-semibold">3.75 GiB <span class="text-gray-500 text-[10px]">/ 25GB</span></p>
+                        <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
+                            <p class="text-[10px] text-gray-500 uppercase mb-1">Players Online</p>
+                            <p id="player-online-text" class="text-sm font-semibold text-white">0 / 100</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg bg-[#0d0d0d]">
+                            <p class="text-[10px] text-gray-500 uppercase mb-1">Storage Usage</p>
+                            <p class="text-sm font-semibold text-white">3.75 GiB <span class="text-gray-500 text-[10px]">/ 25GB</span></p>
                         </div>
                     </div>
                 </div>
 
                 <div id="generic-view" class="hidden">
-                    <div class="card-bg p-10 rounded-lg text-center">
+                    <div class="card-bg p-10 rounded-lg text-center bg-[#0d0d0d]">
                         <i id="page-icon" class="fa-solid fa-file text-5xl text-blue-500 mb-4"></i>
                         <h2 id="page-title" class="text-2xl font-bold text-white">Files</h2>
                         <p class="text-gray-500 mt-2">This module is currently being loaded from the server...</p>
