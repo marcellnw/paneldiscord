@@ -1,0 +1,63 @@
+/* INFO: Bagian Font & Base Styling */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #0d0d0d; 
+    color: #eeeeee; 
+}
+
+/* INFO: Console & Terminal Styling */
+.console-area { 
+    font-family: 'JetBrains Mono', monospace; 
+    background-color: #0a0a0a; 
+    scrollbar-width: thin; 
+    scrollbar-color: #333 #0a0a0a; 
+}
+
+/* INFO: Card & Layout Components */
+.card-bg { 
+    background-color: #151515; 
+    border: 1px solid #222; 
+}
+
+.sidebar-item { 
+    border-left: 3px solid transparent; 
+    cursor: pointer; 
+}
+
+.sidebar-item:hover, .sidebar-item.active { 
+    background-color: #1f1f1f; 
+    border-left: 3px solid #3b82f6; 
+    color: white; 
+}
+
+/* INFO: Status Indicator System */
+.status-dot { 
+    width: 8px; 
+    height: 8px; 
+    border-radius: 50%; 
+    display: inline-block; 
+    margin-right: 6px; 
+}
+
+.status-online { 
+    background-color: #10b981; 
+    box-shadow: 0 0 10px #10b981; 
+}
+
+.status-offline { 
+    background-color: #ef4444; 
+}
+
+.status-starting { 
+    background-color: #f59e0b; 
+    animation: pulse 1s infinite; 
+}
+
+/* INFO: Keyframe Animations */
+@keyframes pulse { 
+    0% { opacity: 1; } 
+    50% { opacity: 0.4; } 
+    100% { opacity: 1; } 
+}
