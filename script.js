@@ -5,7 +5,7 @@
 
 let serverStatus = 'online'; 
 let logInterval;
-let discordInterval;
+let discordInterval; // Tetap dideklarasikan untuk kompatibilitas, meski sekarang pemicu Discord berbasis event
 let uptimeInterval;
 let startTime = Date.now();
 let onlinePlayers = new Set(); 
@@ -81,8 +81,6 @@ function addLog(msg, type = "INFO") {
     const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
     const logLine = document.createElement('div');
     logLine.className = "mb-1 font-mono text-[13px] animate-in fade-in duration-300";
-    
-    // Menggunakan format Bedrock sesuai request Anda
     logLine.innerHTML = `<span class="text-gray-500">[${time}] [Server thread/${type}]:</span> <span class="text-white">${msg}</span>`;
     
     consoleEl.appendChild(logLine);
@@ -109,57 +107,69 @@ async function sendToDiscord(playerName, action, count) {
     } catch (e) { console.error("Webhook Error"); }
 }
 
-// --- SIMULASI AKTIVITAS & STATS ---
+// --- SIMULASI AKTIVITAS & STATS (AKURAT) ---
 function startSimulation() {
     clearInterval(logInterval);
     clearInterval(discordInterval);
 
-    // Interval Log & Stats (Setiap 3 Detik)
     logInterval = setInterval(() => {
         if(serverStatus !== 'online') return;
 
         const rand = Math.random();
-        const player = PLAYER_POOL[Math.floor(Math.random() * PLAYER_POOL.length)];
+        const randomPlayer = PLAYER_POOL[Math.floor(Math.random() * PLAYER_POOL.length)];
+        const onlineArray = Array.from(onlinePlayers);
 
-        if (rand < 0.1) { // Join
-            if (!onlinePlayers.has(player)) {
-                onlinePlayers.add(player);
-                addLog(`${player} joined the game`, "INFO");
+        // LOGIKA JOIN
+        if (rand < 0.1) { 
+            if (!onlinePlayers.has(randomPlayer)) {
+                onlinePlayers.add(randomPlayer);
+                addLog(`${randomPlayer} joined the game`, "INFO");
+                sendToDiscord(randomPlayer, "Player Join", onlinePlayers.size);
             }
-        } else if (rand < 0.15 && onlinePlayers.size > 0) { // Leave
-            const p = Array.from(onlinePlayers)[0];
-            onlinePlayers.delete(p);
-            addLog(`${p} left the game`, "INFO");
-        } else if (rand < 0.4 && onlinePlayers.size > 0) { // Activity
-            const p = Array.from(onlinePlayers)[Math.floor(Math.random() * onlinePlayers.size)];
+        } 
+        // LOGIKA LEAVE (Hanya player yang online yang bisa leave)
+        else if (rand < 0.15 && onlineArray.length > 0) { 
+            const playerToLeave = onlineArray[Math.floor(Math.random() * onlineArray.length)];
+            onlinePlayers.delete(playerToLeave);
+            addLog(`${playerToLeave} left the game`, "INFO");
+            sendToDiscord(playerToLeave, "Player Leave", onlinePlayers.size);
+        } 
+        // LOGIKA AKTIVITAS (Hanya player yang online yang melakukan aktivitas)
+        else if (rand < 0.4 && onlineArray.length > 0) { 
+            const activePlayer = onlineArray[Math.floor(Math.random() * onlineArray.length)];
             const acts = ["mining diamonds", "exploring cave", "fighting mobs", "level up mining"];
-            addLog(`${p} reached ${acts[Math.floor(Math.random() * acts.length)]}`, "INFO");
-        } else {
+            addLog(`${activePlayer} reached ${acts[Math.floor(Math.random() * acts.length)]}`, "INFO");
+        } 
+        // LOGIKA SISTEM
+        else {
             const system = ["Saving chunks for level 'world'", "Syncing player data...", "Average TPS: 20.0"];
             addLog(system[Math.floor(Math.random() * system.length)], "INFO");
         }
 
-        // Update Grafik & Teks Stats
-        const cpu = Math.floor(Math.random() * 15 + 5);
-        const mem = Math.floor(Math.random() * 100 + 900);
-        if(cpuChart) updateChart(cpuChart, cpu);
-        if(memChart) updateChart(memChart, (mem/4096)*100);
-        if(netChart) updateChart(netChart, Math.random() * 50);
-        
-        const cpuTxt = document.getElementById('cpu-text');
-        const memTxt = document.getElementById('mem-text');
-        if(cpuTxt) cpuTxt.innerText = `${cpu}%`;
-        if(memTxt) memTxt.innerText = `${mem} MiB`;
+        // Update Statistik Visual & Grafik
+        updateVisualStats();
 
     }, 3000);
+}
 
-    // Interval Discord (30 Detik Sekali)
-    discordInterval = setInterval(() => {
-        if(serverStatus === 'online' && onlinePlayers.size > 0) {
-            const player = Array.from(onlinePlayers)[0];
-            sendToDiscord(player, "Player Join", onlinePlayers.size);
-        }
-    }, 30000);
+// Fungsi bantu untuk memperbarui Grafik dan Teks di UI
+function updateVisualStats() {
+    if(serverStatus !== 'online') return;
+
+    const cpu = Math.floor(Math.random() * 15 + 5);
+    const mem = Math.floor(Math.random() * 100 + 900);
+    
+    if(cpuChart) updateChart(cpuChart, cpu);
+    if(memChart) updateChart(memChart, (mem/4096)*100);
+    if(netChart) updateChart(netChart, Math.random() * 50);
+    
+    const cpuTxt = document.getElementById('cpu-text');
+    const memTxt = document.getElementById('mem-text');
+    const playerTxt = document.getElementById('player-online-text'); // Gunakan ID ini untuk jumlah player
+
+    if(cpuTxt) cpuTxt.innerText = `${cpu}%`;
+    if(memTxt) memTxt.innerText = `${mem} MiB`;
+    if(playerTxt) playerTxt.innerText = `${onlinePlayers.size} / 100`;
 }
 
 // --- STATS SYSTEM (CHART.JS) ---
@@ -224,8 +234,10 @@ function controlServer(action) {
         addLog("Server stopped.", "INFO");
         onlinePlayers.clear();
         clearInterval(logInterval);
-        clearInterval(discordInterval);
         resetUptime(false);
+        // Reset player display
+        const pTxt = document.getElementById('player-online-text');
+        if(pTxt) pTxt.innerText = "0 / 100";
     } else if(action === 'restart') {
         controlServer('stop');
         setTimeout(() => controlServer('start'), 2000);
