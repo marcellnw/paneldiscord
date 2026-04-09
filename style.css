@@ -1,7 +1,18 @@
 /* INFO: File Styling Web Panel
-  Menangani tema gelap, animasi status, dan desain komponen UI.
+  Menangani tema gelap, animasi status, dan scrollbar transparan.
 */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+
+/* Sembunyikan Scrollbar untuk Chrome, Safari, dan Opera */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* Sembunyikan Scrollbar untuk IE, Edge, dan Firefox */
+html, body, aside, div, .console-area {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
 
 body { 
     font-family: 'Inter', sans-serif; 
@@ -12,8 +23,7 @@ body {
 .console-area { 
     font-family: 'JetBrains Mono', monospace; 
     background-color: #0a0a0a; 
-    scrollbar-width: thin; 
-    scrollbar-color: #333 #0a0a0a; 
+    overflow-y: auto;
 }
 
 .card-bg { 
@@ -22,7 +32,12 @@ body {
 }
 
 .nav-header {
-    text-[10px] font-bold text-gray-500 mb-3 tracking-widest uppercase;
+    font-size: 10px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
 
 .sidebar-item { 
@@ -76,8 +91,8 @@ body {
     color: white;
 }
 
-.stat-label { text-[10px] font-bold text-gray-500 uppercase; }
-.stat-label-small { text-[9px] uppercase text-gray-500 font-black; }
+.stat-label { font-size: 10px; font-weight: 700; color: #6b7280; text-transform: uppercase; }
+.stat-label-small { font-size: 9px; text-transform: uppercase; color: #6b7280; font-weight: 900; }
 
 @media (min-width: 768px) {
     .btn-action { flex: none; }
