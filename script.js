@@ -1,5 +1,5 @@
 /* INFO: Logika Sistem Web Panel
-  Menangani navigasi menu, kontrol server, sistem terminal, dan grafik statistik.
+   Menangani navigasi SPA, kontrol server, sistem terminal, dan grafik statistik.
 */
 
 let serverStatus = 'online'; 
@@ -7,12 +7,13 @@ let logInterval;
 let startTime = Date.now();
 let uptimeInterval;
 
-// Referensi DOM
-const consoleEl = document.getElementById('console');
+// Referensi DOM Global
 const sidebar = document.getElementById('sidebar');
+const consoleEl = document.getElementById('console');
+const headerContainer = document.getElementById('header-container');
 const actionButtons = document.getElementById('console-actions');
 
-// --- SISTEM NAVIGASI ---
+// --- SISTEM NAVIGASI (SPA) ---
 function showPage(pageId) {
     const consoleView = document.getElementById('console-view');
     const genericView = document.getElementById('generic-view');
@@ -25,18 +26,20 @@ function showPage(pageId) {
         if(item.getAttribute('data-page') === pageId) item.classList.add('active');
     });
 
-    // Toggle Kontrol Server (Hanya tampil di Console)
+    // Logika Visibilitas (Header & Tombol HANYA di Console)
     if (pageId === 'console') {
+        headerContainer.classList.remove('hidden');
         actionButtons.classList.remove('hidden');
         consoleView.classList.remove('hidden');
         genericView.classList.add('hidden');
     } else {
-        actionButtons.classList.add('hidden');
+        headerContainer.classList.add('hidden'); // Sembunyikan Header Info
+        actionButtons.classList.add('hidden');    // Sembunyikan Kontrol
         consoleView.classList.add('hidden');
         genericView.classList.remove('hidden');
         
-        // Update Placeholder Content
-        const formattedTitle = pageId.charAt(0).toUpperCase() + pageId.slice(1).replace('-', ' ');
+        // Update Metadata Menu
+        const formattedTitle = pageId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         pageTitle.innerText = formattedTitle;
         
         const icons = { 
@@ -45,8 +48,9 @@ function showPage(pageId) {
             'optimization': 'fa-bolt', 'software': 'fa-layer-group', 'schedules': 'fa-calendar-days',
             'backups': 'fa-file-shield', 'proxy': 'fa-shield-halved', 'icon': 'fa-image',
             'config': 'fa-gears', 'players': 'fa-user-shield', 'versions': 'fa-code-branch',
-            'startup': 'fa-rocket', 'git': 'fa-brands fa-git-alt', 'settings': 'fa-wrench',
-            'split': 'fa-arrows-split-up-and-left'
+            'startup': 'fa-rocket', 'git': 'fa-brands fa-git-alt', 'settings-dev': 'fa-wrench',
+            'settings-server': 'fa-sliders', 'split': 'fa-arrows-split-up-and-left',
+            'env': 'fa-flask', 'subdomain': 'fa-link'
         };
         pageIcon.className = `fa-solid ${icons[pageId] || 'fa-cube'} text-5xl text-blue-500 mb-4`;
     }
@@ -123,7 +127,9 @@ function startLiveLogs(ms = 3000) {
 
 // --- STATS SYSTEM (CHART.JS) ---
 function createChart(id, color) {
-    const ctx = document.getElementById(id).getContext('2d');
+    const canvas = document.getElementById(id);
+    if (!canvas) return null;
+    const ctx = canvas.getContext('2d');
     return new Chart(ctx, {
         type: 'line',
         data: {
@@ -156,11 +162,14 @@ setInterval(() => {
     if(serverStatus === 'online') {
         const cpu = Math.floor(Math.random() * 15 + 5);
         const mem = Math.floor(Math.random() * 100 + 900);
-        updateChart(cpuChart, cpu);
-        updateChart(memChart, (mem/4096)*100);
-        updateChart(netChart, Math.random() * 50);
-        document.getElementById('cpu-text').innerText = `${cpu}%`;
-        document.getElementById('mem-text').innerText = `${mem} MiB`;
+        if(cpuChart) updateChart(cpuChart, cpu);
+        if(memChart) updateChart(memChart, (mem/4096)*100);
+        if(netChart) updateChart(netChart, Math.random() * 50);
+        
+        const cpuTxt = document.getElementById('cpu-text');
+        const memTxt = document.getElementById('mem-text');
+        if(cpuTxt) cpuTxt.innerText = `${cpu}%`;
+        if(memTxt) memTxt.innerText = `${mem} MiB`;
     }
 }, 1000);
 
@@ -173,6 +182,7 @@ function updateChart(chart, value) {
 // --- UTILS ---
 function resetUptime(isStarting) {
     clearInterval(uptimeInterval);
+    const upt = document.getElementById('uptime-text');
     if (isStarting) {
         startTime = Date.now();
         uptimeInterval = setInterval(() => {
@@ -180,13 +190,14 @@ function resetUptime(isStarting) {
             const s = Math.floor(diff / 1000) % 60;
             const m = Math.floor(diff / (1000 * 60)) % 60;
             const h = Math.floor(diff / (1000 * 60 * 60)) % 24;
-            document.getElementById('uptime-text').innerText = `0d ${h}h ${m}m ${s}s`;
+            if(upt) upt.innerText = `0d ${h}h ${m}m ${s}s`;
         }, 1000);
     } else {
-        document.getElementById('uptime-text').innerText = "0d 0h 0m 0s";
+        if(upt) upt.innerText = "0d 0h 0m 0s";
     }
 }
 
+// Event Listeners
 document.getElementById('console-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && this.value) {
         addLog(this.value, "USER");
@@ -203,4 +214,5 @@ window.onload = () => {
     addLog("System environment ready.", "INFO");
     resetUptime(true);
     startLiveLogs(1500);
+    showPage('console'); // Pastikan console tampil pertama kali
 };
