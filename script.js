@@ -49,13 +49,12 @@ function addLog(msg, type = "INFO") {
     consoleEl.appendChild(logLine);
     consoleEl.scrollTop = consoleEl.scrollHeight;
 
-    // Hapus log lama jika lebih dari 100 baris agar tidak lag
     if (consoleEl.childNodes.length > 100) {
         consoleEl.removeChild(consoleEl.firstChild);
     }
 }
 
-// --- DISCORD WEBHOOK (Prose Only - No Emojis/Chat/Count) ---
+// --- DISCORD WEBHOOK (Prose Only - Join/Leave) ---
 function sendToDiscord(playerName, action) {
     const payload = {
         embeds: [{
@@ -67,7 +66,6 @@ function sendToDiscord(playerName, action) {
         }]
     };
 
-    // Dikirim secara async (fire and forget) agar konsol tetap kencang
     fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,7 +73,7 @@ function sendToDiscord(playerName, action) {
     }).catch(() => {}); 
 }
 
-// --- SIMULASI AKTIVITAS (High Performance) ---
+// --- SIMULASI AKTIVITAS (Hanya Join/Leave & System) ---
 function startSimulation() {
     if (logTimeout) clearTimeout(logTimeout);
     seedPlayers();
@@ -87,7 +85,7 @@ function startSimulation() {
         const onlineArray = Array.from(onlinePlayers);
         const randomPlayer = PLAYER_POOL[Math.floor(Math.random() * PLAYER_POOL.length)];
 
-        // 1. Aktivitas Player (Login/Leave ke Webhook)
+        // 1. Aktivitas Player (Webhook Aktif)
         if (rand < 0.07) { 
             if (!onlinePlayers.has(randomPlayer)) {
                 onlinePlayers.add(randomPlayer);
@@ -101,7 +99,7 @@ function startSimulation() {
             addLog(`${pToLeave} left the game`, "INFO");
             sendToDiscord(pToLeave, "Left the game");
         } 
-        // 2. Aktivitas Sistem (Hanya di Konsol - Spam Aman)
+        // 2. Aktivitas Sistem (Hanya di Konsol - Webhook Tidak Aktif)
         else {
             const sysLogs = [
                 "Saving chunks for level 'world'",
@@ -118,7 +116,6 @@ function startSimulation() {
 
         updateVisualStats();
 
-        // Kecepatan log random: 800ms sampai 3.5 detik (Terlihat sibuk)
         const nextTick = Math.floor(Math.random() * 2700) + 800;
         logTimeout = setTimeout(runSimulation, nextTick);
     };
@@ -153,13 +150,12 @@ function controlServer(action) {
     }
 }
 
-// --- UI UPDATES ---
+// --- UI UPDATES & UPTIME ---
 function updateVisualStats() {
     if(serverStatus !== 'online') return;
     const cpu = Math.floor(Math.random() * 12 + 4);
     const mem = Math.floor(Math.random() * 150 + 1100);
     
-    // Update Chart.js jika ada
     if(window.cpuChart) updateChart(cpuChart, cpu);
     if(window.memChart) updateChart(memChart, (mem/4096)*100);
     
@@ -199,7 +195,6 @@ function resetUptime(start) {
     }
 }
 
-// --- INIT ---
 window.onload = () => {
     if(typeof showPage === 'function') showPage('console');
     if(serverStatus === 'online') {
