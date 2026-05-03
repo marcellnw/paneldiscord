@@ -11,7 +11,7 @@ let uptimeInterval;
 let startTime = Date.now();
 let onlinePlayers = new Set(); 
 
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1491637769468907621/ItuJvO9EwusKDxWCG6eA9BYw1hGYrnhfKyffmMt6FPH7WZKfIjH3Z43fU4NSDSdv1xkj";
+const DISCORD_WEBHOOK_URL = "";
 
 const PLAYER_POOL = [
     "Chillatomboy", "AldianGG", "Lackykz", "Reza3487", "vexevitrix", "Svennnz",
